@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Song Structure Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+select {
+    font-size: 18px;
+    padding: 8px;
+    margin-bottom: 30px;
+}
+
+#timeline {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.section {
+    min-height: 120px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    padding: 10px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.intro {
+    background: #3498db;
+}
+
+.verse {
+    background: #2ecc71;
+}
+
+
+.chorus {
+    background: #e74c3c;
+}
+
+.bridge {
+    background: #9b59b6;
+}
+
+.solo {
+    background: #f1c40f;
+    color: black;
+}
+
+.outro {
+    background: #95a5a6;
+}
+</style>
+</head>
+<body>
+
+<h1 id="songTitle">Song Structure</h1>
+
+<select id="songSelect"></select>
+
+<div id="timeline"></div>
+
+<script>
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVT2LJ1yGEfqt7J5g6NYH3oWqALlJNs4j3A659MLBe4XtAI-UT48Dix2csVzY0_ty40UhaP3rCrmry/pub?output=csv";
+
+let allData = [];
+
+Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    complete: function(results) {
+        allData = results.data.filter(r => r.Song);
+
+        const songs = [...new Set(allData.map(r => r.Song))];
+
+        const select = document.getElementById("songSelect");
+
+        songs.forEach(song => {
+            const option = document.createElement("option");
+            option.value = song;
+            option.textContent = song;
+            select.appendChild(option);
+        });
+
+        select.addEventListener("change", () => {
+            renderSong(select.value);
+        });
+
+        renderSong(songs[0]);
+    }
+});
+
+function renderSong(songName) {
+    document.getElementById("songTitle").textContent = songName;
+
+    const timeline = document.getElementById("timeline");
+    timeline.innerHTML = "";
+
+    const songData = allData.filter(r => r.Song === songName);
+
+    songData.forEach(section => {
+        const div = document.createElement("div");
+
+        const bars = parseInt(section.Bars) || 4;
+
+        div.className = `section ${section.Type.toLowerCase()}`;
+        div.style.flex = bars;
+
+        div.innerHTML = `
+            <div>${section.Section}</div>
+            <div>${bars} bars</div>
+        `;
+
+        timeline.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
+
+Initial version
