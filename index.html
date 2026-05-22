@@ -124,10 +124,13 @@ function renderSong(songName) {
         div.className = `section ${section.Type.toLowerCase()}`;
         div.style.flex = bars;
 
-        div.innerHTML = `
-            <div>${section.Section}</div>
-            <div>${bars} bars</div>
-        `;
+div.innerHTML = `
+    <div>${section.Section}</div>
+    <div>${bars} bars</div>
+    <div style="font-size: 13px; font-weight: normal; margin-top: 6px;">
+        ${section.Comment || ""}
+    </div>
+`;
 
         timeline.appendChild(div);
     });
