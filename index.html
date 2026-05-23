@@ -30,6 +30,15 @@ select {
     overflow-x: auto;
 }
 
+#timeline.vertical {
+    flex-direction: column;
+}
+
+#timeline.vertical .section {
+    width: 100%;
+    min-height: 70px;
+}    
+    
 .section {
     min-height: 120px;
     border-radius: 12px;
@@ -75,7 +84,8 @@ select {
 <h1 id="songTitle">Song Structure</h1>
 
 <select id="songSelect"></select>
-
+<button id="toggleLayout">Byt till lodrätt</button>
+    
 <div id="timeline"></div>
 
 <script>
@@ -83,6 +93,18 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVT2LJ1yGEfqt7J
 
 let allData = [];
 
+let verticalMode = false;
+
+document.getElementById("toggleLayout").addEventListener("click", () => {
+    verticalMode = !verticalMode;
+
+    const timeline = document.getElementById("timeline");
+    timeline.classList.toggle("vertical", verticalMode);
+
+    document.getElementById("toggleLayout").textContent =
+        verticalMode ? "Byt till vågrätt" : "Byt till lodrätt";
+});    
+    
 Papa.parse(csvUrl, {
     download: true,
     header: true,
@@ -122,7 +144,11 @@ function renderSong(songName) {
         const bars = parseInt(section.Bars) || 4;
 
         div.className = `section ${section.Type.toLowerCase()}`;
-        div.style.flex = bars;
+        if (verticalMode) {
+            div.style.width = "100%";
+        } else {
+            div.style.flex = bars;
+        }
 
 div.innerHTML = `
     <div>${section.Section}</div>
