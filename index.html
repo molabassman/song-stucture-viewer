@@ -38,6 +38,17 @@ select {
     width: 100%;
     min-height: 70px;
 }    
+
+#timeline.fit {
+    height: 80vh;
+    overflow: hidden;
+}
+
+#timeline.fit .section {
+    font-size: 10px;
+    min-height: 20px;
+    padding: 3px;
+}
     
 .section {
     min-height: 120px;
@@ -85,6 +96,7 @@ select {
 
 <select id="songSelect"></select>
 <button id="toggleLayout">Byt till lodrätt</button>
+<button id="fitScreen">Visa hela låten</button>
     
 <div id="timeline"></div>
 
@@ -93,6 +105,19 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVT2LJ1yGEfqt7J
 
 let allData = [];
 
+let fitMode = false;
+
+document.getElementById("fitScreen").addEventListener("click", () => {
+    fitMode = !fitMode;
+
+    document.getElementById("timeline").classList.toggle("fit", fitMode);
+
+    document.getElementById("fitScreen").textContent =
+        fitMode ? "Normal storlek" : "Visa hela låten";
+
+    renderSong(document.getElementById("songSelect").value);
+});
+    
 let verticalMode = false;
 
 document.getElementById("toggleLayout").addEventListener("click", () => {
@@ -159,7 +184,12 @@ if (verticalMode) {
         </div>
     `;
 
+    if (fitMode) {
+        const totalBars = songData.reduce((sum, s) => sum + (parseInt(s.Bars) || 4), 0);
+        div.style.height = `${(bars / totalBars) * 80}vh`;
+    } else {
     div.style.height = `${bars * 8}px`;
+    }
 
 } else {
 
