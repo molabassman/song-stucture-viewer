@@ -3,9 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Song Structure Viewer</title>
+
+<!-- Läser CSV-data från Google Sheets -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<!-- CSS: Här styrs utseendet -->
 <style>
+
+/* Grundutseende för hela sidan */
 body {
     background: #111;
     color: white;
@@ -13,16 +20,19 @@ body {
     padding: 20px;
 }
 
+/* Rubriken med låttitel */
 h1 {
     margin-bottom: 10px;
 }
 
+/* Rullistan där man väljer låt */
 select {
     font-size: 18px;
     padding: 8px;
     margin-bottom: 30px;
 }
 
+/* Tidslinjen i vågrätt läge */
 #timeline {
     display: flex;
     gap: 4px;
@@ -30,26 +40,31 @@ select {
     overflow-x: auto;
 }
 
+/* Lodrätt läge */
 #timeline.vertical {
     flex-direction: column;
 }
 
+/* Sektioner i lodrätt läge */
 #timeline.vertical .section {
     width: 100%;
     min-height: 70px;
-}    
+}
 
+/* Fit-läge: försök få hela låten att synas */
 #timeline.fit {
     height: 80vh;
     overflow: hidden;
 }
 
+/* Mindre text i fit-läge */
 #timeline.fit .section {
     font-size: 10px;
     min-height: 20px;
     padding: 3px;
 }
-    
+
+/* Grundutseende för varje låtdel */
 .section {
     min-height: 120px;
     border-radius: 12px;
@@ -63,51 +78,49 @@ select {
     white-space: nowrap;
 }
 
-.intro {
-    background: #3498db;
-}
-
-.verse {
-    background: #2ecc71;
-}
-
-
-.chorus {
-    background: #e74c3c;
-}
-
-.bridge {
-    background: #9b59b6;
-}
-
+/* Färger för olika typer av låtdelar */
+.intro { background: #3498db; }
+.verse { background: #2ecc71; }
+.chorus { background: #e74c3c; }
+.bridge { background: #9b59b6; }
 .solo {
     background: #f1c40f;
     color: black;
 }
+.outro { background: #95a5a6; }
 
-.outro {
-    background: #95a5a6;
-}
 </style>
 </head>
+
 <body>
 
+<!-- HTML: Det som syns på sidan -->
 <h1 id="songTitle">Song Structure</h1>
 
 <select id="songSelect"></select>
+
 <button id="toggleLayout">Byt till lodrätt</button>
-<button id="fitScreen">Visa hela låten</button>
     
+<button id="fitScreen">Normal storlek</button>
+
 <div id="timeline"></div>
 
+<!-- JavaScript: Här finns programmets logik -->
 <script>
+
+/* Länk till Google Sheets som CSV */
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVT2LJ1yGEfqt7J5g6NYH3oWqALlJNs4j3A659MLBe4XtAI-UT48Dix2csVzY0_ty40UhaP3rCrmry/pub?output=csv";
 
+/* Här sparas all data från kalkylarket */
 let allData = [];
 
+/* Fit-läge är på från start */
 let fitMode = true;
-const timeline = document.getElementById("timeline");
-    
+
+/* Lodrätt läge är av från start */
+let verticalMode = false;
+
+/* Knapp: visa hela låten / normal storlek */
 document.getElementById("fitScreen").addEventListener("click", () => {
     fitMode = !fitMode;
 
@@ -118,9 +131,8 @@ document.getElementById("fitScreen").addEventListener("click", () => {
 
     renderSong(document.getElementById("songSelect").value);
 });
-    
-let verticalMode = false;
 
+/* Knapp: växla mellan vågrätt och lodrätt läge */
 document.getElementById("toggleLayout").addEventListener("click", () => {
     verticalMode = !verticalMode;
 
@@ -129,18 +141,25 @@ document.getElementById("toggleLayout").addEventListener("click", () => {
 
     document.getElementById("toggleLayout").textContent =
         verticalMode ? "Byt till vågrätt" : "Byt till lodrätt";
-});    
-    
+
+    renderSong(document.getElementById("songSelect").value);
+});
+
+/* Läs in CSV-filen från Google Sheets */
 Papa.parse(csvUrl, {
     download: true,
     header: true,
+
     complete: function(results) {
+        /* Ta bara rader där Song finns */
         allData = results.data.filter(r => r.Song);
 
+        /* Skapa lista med unika låttitlar */
         const songs = [...new Set(allData.map(r => r.Song))];
 
         const select = document.getElementById("songSelect");
 
+        /* Lägg in låtarna i rullistan */
         songs.forEach(song => {
             const option = document.createElement("option");
             option.value = song;
@@ -148,72 +167,76 @@ Papa.parse(csvUrl, {
             select.appendChild(option);
         });
 
+        /* När man byter låt i rullistan */
         select.addEventListener("change", () => {
             renderSong(select.value);
         });
 
+        /* Visa första låten automatiskt */
         renderSong(songs[0]);
     }
 });
 
+/* Ritar upp vald låt */
 function renderSong(songName) {
     document.getElementById("songTitle").textContent = songName;
 
     const timeline = document.getElementById("timeline");
 
     timeline.classList.toggle("fit", fitMode);
-
     timeline.innerHTML = "";
 
+    /* Filtrera fram bara vald låt */
     const songData = allData.filter(r => r.Song === songName);
 
+    /* Räkna ut totala antalet takter */
+    const totalBars = songData.reduce((sum, s) => sum + (parseInt(s.Bars) || 4), 0);
+
+    /* Skapa en ruta för varje låtdel */
     songData.forEach(section => {
         const div = document.createElement("div");
 
         const bars = parseInt(section.Bars) || 4;
 
+        /* Typen styr färgen, t.ex. verse, chorus, solo */
         div.className = `section ${section.Type.toLowerCase()}`;
 
         if (verticalMode) {
+            /* Lodrätt läge */
             div.style.width = "100%";
+
+            div.innerHTML = `
+                <div>
+                    <strong>${section.Section}</strong>
+                    • ${bars} bars
+                    ${section.Comment ? "• " + section.Comment : ""}
+                </div>
+            `;
+
+            if (fitMode) {
+                div.style.height = `${(bars / totalBars) * 80}vh`;
+            } else {
+                div.style.height = `${bars * 8}px`;
+            }
+
         } else {
+            /* Vågrätt läge */
             div.style.flex = bars;
+
+            div.innerHTML = `
+                <div>${section.Section}</div>
+                <div>${bars} bars</div>
+                <div style="font-size: 13px; font-weight: normal; margin-top: 6px;">
+                    ${section.Comment || ""}
+                </div>
+            `;
         }
-
-if (verticalMode) {
-    div.innerHTML = `
-        <div>
-            <strong>${section.Section}</strong>
-            • ${bars} bars
-            ${section.Comment ? "• " + section.Comment : ""}
-        </div>
-    `;
-
-    if (fitMode) {
-        const totalBars = songData.reduce((sum, s) => sum + (parseInt(s.Bars) || 4), 0);
-        div.style.height = `${(bars / totalBars) * 80}vh`;
-    } else {
-    div.style.height = `${bars * 8}px`;
-    }
-
-} else {
-
-    div.innerHTML = `
-        <div>${section.Section}</div>
-        <div>${bars} bars</div>
-        <div style="font-size: 13px; font-weight: normal; margin-top: 6px;">
-            ${section.Comment || ""}
-        </div>
-    `;
-
-    div.style.flex = bars;
-}
 
         timeline.appendChild(div);
     });
 }
+
 </script>
 
 </body>
 </html>
-
