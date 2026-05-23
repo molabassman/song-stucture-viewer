@@ -150,13 +150,29 @@ function renderSong(songName) {
             div.style.flex = bars;
         }
 
-div.innerHTML = `
-    <div>${section.Section}</div>
-    <div>${bars} bars</div>
-    <div style="font-size: 13px; font-weight: normal; margin-top: 6px;">
-        ${section.Comment || ""}
-    </div>
-`;
+if (verticalMode) {
+    div.innerHTML = `
+        <div>
+            <strong>${section.Section}</strong>
+            • ${bars} bars
+            ${section.Comment ? "• " + section.Comment : ""}
+        </div>
+    `;
+
+    div.style.height = `${bars * 8}px`;
+
+} else {
+
+    div.innerHTML = `
+        <div>${section.Section}</div>
+        <div>${bars} bars</div>
+        <div style="font-size: 13px; font-weight: normal; margin-top: 6px;">
+            ${section.Comment || ""}
+        </div>
+    `;
+
+    div.style.flex = bars;
+}
 
         timeline.appendChild(div);
     });
