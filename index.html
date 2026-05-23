@@ -105,8 +105,9 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVT2LJ1yGEfqt7J
 
 let allData = [];
 
-let fitMode = false;
-
+let fitMode = true;
+const timeline = document.getElementById("timeline");
+    
 document.getElementById("fitScreen").addEventListener("click", () => {
     fitMode = !fitMode;
 
@@ -159,6 +160,9 @@ function renderSong(songName) {
     document.getElementById("songTitle").textContent = songName;
 
     const timeline = document.getElementById("timeline");
+
+    timeline.classList.toggle("fit", fitMode);
+
     timeline.innerHTML = "";
 
     const songData = allData.filter(r => r.Song === songName);
@@ -169,6 +173,7 @@ function renderSong(songName) {
         const bars = parseInt(section.Bars) || 4;
 
         div.className = `section ${section.Type.toLowerCase()}`;
+
         if (verticalMode) {
             div.style.width = "100%";
         } else {
