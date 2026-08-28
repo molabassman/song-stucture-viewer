@@ -236,6 +236,24 @@ function renderSong(songName) {
     });
 }
 
+let wakeLock = null;
+
+async function keepScreenAwake() {
+    try {
+        wakeLock = await navigator.wakeLock.request("screen");
+    } catch (err) {
+        console.log("Wake Lock kunde inte aktiveras:", err);
+    }
+}
+
+keepScreenAwake();
+
+document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible") {
+        await keepScreenAwake();
+    }
+});
+    
 </script>
 
 </body>
